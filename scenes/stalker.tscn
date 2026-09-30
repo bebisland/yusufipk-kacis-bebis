@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/stalker.gd" id="1_st"]
+[ext_resource type="Script" path="res://scripts/character_visual.gd" id="2_cv"]
+
+[sub_resource type="CapsuleShape3D" id="Capsule_st"]
+radius = 0.35
+height = 2.1
+
+[node name="Stalker" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 1
+script = ExtResource("1_st")
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+shape = SubResource("Capsule_st")
+
+[node name="Visual" type="Node3D" parent="."]
+script = ExtResource("2_cv")
+
+[node name="Agent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.7
+target_desired_distance = 0.9
+height = 2.2
+radius = 0.45
+
+[node name="Steps" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+unit_size = 5.0
+max_distance = 45.0
