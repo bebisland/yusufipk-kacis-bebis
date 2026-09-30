@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/character_visual.gd" id="2_cv"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_st"]
-radius = 0.35
+radius = 0.28
 height = 2.1
 
 [node name="Stalker" type="CharacterBody3D"]

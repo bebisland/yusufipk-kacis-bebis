@@ -59,7 +59,7 @@ func wander_speed() -> float:
 
 
 func chase_speed() -> float:
-	return minf(3.9 + 0.4 * level(), 6.2)
+	return minf(3.6 + 0.45 * level(), 6.2)
 
 
 func _target_speed() -> float:
@@ -95,7 +95,7 @@ func _perceive() -> void:
 	var L := level()
 	var p_eye := player.eye_position()
 	var d := global_position.distance_to(player.global_position)
-	var sight := 18.0 + 2.0 * L if player.is_lit() else 7.0 + 0.8 * L
+	var sight := 14.0 + 2.5 * L if player.is_lit() else 6.0 + 1.0 * L
 	var sees := d < sight and (d < 2.5 or _in_fov(p_eye)) and _can_see_point(p_eye)
 	if sees:
 		_last_seen = player.global_position
@@ -110,7 +110,7 @@ func _perceive() -> void:
 		# Pull the spot a little toward the player so the ray does not end
 		# inside the wall it is painted on.
 		var probe := lp + (player.eye_position() - lp).normalized() * 0.3
-		if global_position.distance_to(lp) < 16.0 + 2.0 * L and _in_fov(probe) and _can_see_point(probe):
+		if global_position.distance_to(lp) < 14.0 + 2.5 * L and _in_fov(probe) and _can_see_point(probe):
 			_investigate(player.global_position)
 
 
@@ -125,7 +125,7 @@ func _tick_state(delta: float) -> void:
 				_lost_t += delta
 			# For a moment after losing sight it still knows where the player
 			# went, so one corner is not enough to shake it.
-			if _lost_t < 1.2 + 0.25 * level():
+			if _lost_t < 0.8 + 0.25 * level():
 				agent.target_position = player.global_position
 			else:
 				_investigate(_last_seen)
@@ -146,7 +146,7 @@ func _tick_state(delta: float) -> void:
 
 func _pick_wander_target() -> Vector3:
 	# Drifts toward the player more and more as the round goes on.
-	var hunt := clampf(0.2 + 0.12 * level(), 0.0, 0.85)
+	var hunt := clampf(0.1 + 0.13 * level(), 0.0, 0.85)
 	if randf() < hunt:
 		return main.random_point_near(player.global_position, 3)
 	return main.random_point_near(global_position, 6)
@@ -187,15 +187,11 @@ func _move(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(hv.x, hv.z), TURN_RATE * delta)
 	visual.set_motion(moved, 1.6, 4.5)
 
-	# Wedged on a corner or another collider: ask for a fresh path.
 	if target_speed > 0.5 and moved < 0.3:
 		_stuck_t += delta
 		if _stuck_t > 1.0:
 			_stuck_t = 0.0
-			if state == State.WANDER or state == State.SEARCH:
-				agent.target_position = main.random_point_near(global_position, 3)
-			else:
-				agent.target_position = agent.target_position
+			_unstick()
 	else:
 		_stuck_t = 0.0
 
@@ -203,6 +199,22 @@ func _move(delta: float) -> void:
 	if _stride > STRIDE:
 		_stride = 0.0
 		_step_sound()
+
+
+## Sliding along a wall while cutting a corner can leave the body just off
+## the navmesh (which is shrunk by the agent radius), where the next path
+## point lies through the wall. Put it back on the mesh and ask for a new path.
+func _unstick() -> void:
+	var map := get_world_3d().navigation_map
+	var cp := NavigationServer3D.map_get_closest_point(map, global_position)
+	if Autopilot.enabled():
+		print("STALKER unstick at %s -> %s (state %d)" % [global_position, cp, state])
+	if Vector2(cp.x - global_position.x, cp.z - global_position.z).length() > 0.05:
+		global_position = Vector3(cp.x, global_position.y, cp.z)
+	if state == State.WANDER or state == State.SEARCH:
+		agent.target_position = main.random_point_near(global_position, 3)
+	else:
+		agent.target_position = agent.target_position
 
 
 func _step_sound() -> void:

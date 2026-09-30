@@ -54,6 +54,7 @@ var _lamps: Array[OmniLight3D] = []
 var _heart_t := 0.0
 var _auto_restart := -1.0
 var _rng := RandomNumberGenerator.new()
+var _bot_seen := {}
 
 
 func _ready() -> void:
@@ -80,9 +81,9 @@ func _ready() -> void:
 	get_tree().create_timer(GRACE, false).timeout.connect(func() -> void: stalker.active = phase == Phase.PLAY)
 
 
-## Difficulty: one step per key plus one every 75 seconds.
+## Difficulty: one step per key plus one every 90 seconds.
 func level() -> float:
-	return keys_taken + elapsed / 75.0
+	return keys_taken + elapsed / 90.0
 
 
 func cell_pos(c: Vector2i) -> Vector3:
@@ -322,8 +323,10 @@ func _oriented(size_side_up_out: Vector3, side: Vector3) -> Vector3:
 func _bake_nav() -> void:
 	var nm := NavigationMesh.new()
 	nm.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	# Multiples of the 0.25 m voxel so the baker does not round them.
-	nm.agent_radius = 0.5
+	# Multiples of the 0.25 m voxel so the baker does not round them. The
+	# radius is well above the stalker's 0.28 m body because voxel erosion
+	# lets paths hug wall ends by about one cell.
+	nm.agent_radius = 0.75
 	nm.agent_height = 2.25
 	nm.agent_max_climb = 0.25
 	nm.cell_size = 0.25
@@ -348,9 +351,24 @@ func _spawn_player() -> void:
 		ModelUtil.fix_meshy_materials(meshes)
 		for mi in meshes:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# Layer 2 only: the flashlight's own beam skips it (cull mask).
+			mi.layers = 2
 		var hand := player.get_node("Head/Camera/Hand") as Node3D
 		ModelUtil.fit_height(model, 0.07)
-		hand.add_child(model)
+		# The mesh lies along X with the lens at -X; turn the lens to -Z.
+		var pivot := Node3D.new()
+		pivot.rotation.y = -PI / 2.0
+		pivot.position.y = -0.035
+		pivot.add_child(model)
+		hand.add_child(pivot)
+		# Spill from the lens, lighting only the hand-held model.
+		var spill := OmniLight3D.new()
+		spill.light_cull_mask = 2
+		spill.light_color = Color(1.0, 0.9, 0.75)
+		spill.light_energy = 0.5
+		spill.omni_range = 0.5
+		spill.position = Vector3(0, 0.05, -0.2)
+		hand.add_child(spill)
 
 
 func _place_items() -> void:
@@ -409,12 +427,24 @@ func _spawn_stalker() -> void:
 	stalker = (load("res://scenes/stalker.tscn") as PackedScene).instantiate()
 	var vis := stalker.get_node("Visual") as CharacterVisual
 	vis.model_path = MODEL_STALKER
-	vis.target_height = 2.2
+	# Rest-pose height; the hunched walk clip carries it at about 2 m.
+	vis.target_height = 2.4
 	vis.extra_anims = {"run": MODEL_STALKER_RUN, "idle": MODEL_STALKER_IDLE}
 	stalker.main = self
 	stalker.player = player
 	stalker.position = cell_pos(options[_rng.randi() % options.size()])
 	add_child(stalker)
+	if FileAccess.file_exists("user://stalkercam"):
+		# Dev only: watch the stalker from over its shoulder.
+		var cam := Camera3D.new()
+		cam.position = Vector3(0.6, 2.6, -2.6)
+		cam.rotation_degrees = Vector3(-15, 180, 0)
+		stalker.add_child(cam)
+		cam.make_current.call_deferred()
+		var l := OmniLight3D.new()
+		l.position = Vector3(0, 2.5, 1.2)
+		l.omni_range = 5.0
+		stalker.add_child(l)
 	player.noise.connect(stalker.hear)
 	stalker.caught.connect(_on_caught)
 	stalker.state_changed.connect(func(chasing: bool) -> void:
@@ -583,21 +613,45 @@ func _physics_process(delta: float) -> void:
 	Autopilot.drive(player, _bot_goal(), stalker, delta)
 
 
+## Plays like someone who does not know the map: heads for a pickup only
+## once it is close, otherwise explores the nearest unvisited cell.
 func _bot_goal() -> Vector3:
+	_bot_seen[pos_cell(player.global_position)] = true
+	if stalker.is_chasing():
+		# Run for whichever nearby cell is furthest from the stalker.
+		var pc := pos_cell(player.global_position)
+		var far := -1.0
+		var flee := player.global_position
+		for dx in range(-3, 4):
+			for dy in range(-3, 4):
+				var c := pc + Vector2i(dx, dy)
+				if maze.in_bounds(c):
+					var d := cell_pos(c).distance_to(stalker.global_position)
+					if d > far:
+						far = d
+						flee = cell_pos(c)
+		return flee
+	if keys_taken >= KEY_COUNT:
+		return exit_goal
 	var groups: Array[StringName] = [&"keys"]
-	if player.battery < 0.25:
+	if player.battery < 0.3:
 		groups.push_front(&"batterys")
 	for g in groups:
-		var best := INF
-		var goal := Vector3.INF
 		for n: Node3D in get_tree().get_nodes_in_group(g):
-			var d := n.global_position.distance_to(player.global_position)
+			if n.global_position.distance_to(player.global_position) < 7.0:
+				return n.global_position
+	var best := INF
+	var goal := exit_goal
+	for x in MAZE_W:
+		for y in MAZE_H:
+			var c := Vector2i(x, y)
+			if _bot_seen.has(c):
+				continue
+			var d := cell_pos(c).distance_to(player.global_position)
 			if d < best:
 				best = d
-				goal = n.global_position
-		if goal != Vector3.INF:
-			return goal
-	return exit_goal
+				goal = cell_pos(c)
+	return goal
 
 
 ## Heartbeat speeds up and the vignette reddens as the stalker gets close,

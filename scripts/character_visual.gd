@@ -78,9 +78,54 @@ func _merge_extra_anims() -> void:
 		if ap and ap.get_animation_list().size() > 0:
 			var key := StringName("x_" + clip)
 			if not lib.has_animation(key):
-				lib.add_animation(key, ap.get_animation(ap.get_animation_list()[0]))
+				var src := ap.get_animation(ap.get_animation_list()[0])
+				var src_skel := _find_skeleton(tmp)
+				var dst_skel := _find_skeleton(anim_player.get_parent())
+				if src_skel and dst_skel:
+					src = _retarget(src, src_skel, dst_skel)
+				lib.add_animation(key, src)
 			_clips[clip] = key
 		tmp.free()
+
+
+func _find_skeleton(n: Node) -> Skeleton3D:
+	if n is Skeleton3D:
+		return n
+	for c in n.get_children():
+		var r := _find_skeleton(c)
+		if r:
+			return r
+	return null
+
+
+## Each clip comes from a separate auto-rig of the same mesh, and those rigs
+## can disagree on bone rest orientation (one came back with the hips turned
+## ~117 degrees). Rewrites rotation keys so every bone keeps the same world
+## orientation relative to its rest: q_dst = C_parent^-1 * q_src * C_bone,
+## with C = global_rest_src^-1 * global_rest_dst.
+func _retarget(anim: Animation, src: Skeleton3D, dst: Skeleton3D) -> Animation:
+	var out := anim.duplicate(true) as Animation
+	var corr := {}
+	for b in dst.get_bone_count():
+		var sb := src.find_bone(dst.get_bone_name(b))
+		if sb < 0:
+			continue
+		var gs := src.get_bone_global_rest(sb).basis.orthonormalized().get_rotation_quaternion()
+		var gd := dst.get_bone_global_rest(b).basis.orthonormalized().get_rotation_quaternion()
+		corr[b] = gs.inverse() * gd
+	for t in out.get_track_count():
+		if out.track_get_type(t) != Animation.TYPE_ROTATION_3D:
+			continue
+		var b := dst.find_bone(String(out.track_get_path(t).get_concatenated_subnames()))
+		if b < 0 or not corr.has(b):
+			continue
+		var p := dst.get_bone_parent(b)
+		var pre: Quaternion = (corr[p] as Quaternion).inverse() if corr.has(p) else Quaternion.IDENTITY
+		var post: Quaternion = corr[b]
+		for k in out.track_get_key_count(t):
+			var q: Quaternion = out.track_get_key_value(t, k)
+			out.track_set_key_value(t, k, (pre * q * post).normalized())
+	return out
 
 
 ## speed in m/s; idle below a crawl, run once past the walk/run midpoint.
