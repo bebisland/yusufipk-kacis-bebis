@@ -2,7 +2,9 @@ class_name Autopilot
 extends RefCounted
 ## Debug-only bot used to measure round length while tuning difficulty.
 ## Enabled by creating user://autopilot; never active in a normal install.
-## A number in the file sets Engine.time_scale for faster runs.
+## A number in the file sets Engine.time_scale for faster runs. The word
+## "demo" makes it a showcase: the bot knows where the keys are, retries
+## until it escapes, then plays the escape film at normal speed and stops.
 
 const FLAG_PATH := "user://autopilot"
 
@@ -11,15 +13,31 @@ static var _cached := -1
 
 static func enabled() -> bool:
 	if _cached < 0:
-		_cached = 1 if FileAccess.file_exists(FLAG_PATH) else 0
+		_cached = 1 if OS.is_debug_build() and FileAccess.file_exists(FLAG_PATH) else 0
 	return _cached == 1
 
 
+static var _cached_words: Variant = null
+
+
+static func _words() -> PackedStringArray:
+	if _cached_words == null:
+		_cached_words = PackedStringArray()
+		if enabled():
+			var text := FileAccess.get_file_as_string(FLAG_PATH).replace("\n", " ").replace("\t", " ")
+			_cached_words = text.strip_edges().split(" ", false)
+	return _cached_words
+
+
 static func time_scale() -> float:
-	if not enabled():
-		return 1.0
-	var t := FileAccess.get_file_as_string(FLAG_PATH).strip_edges()
-	return clampf(t.to_float(), 1.0, 4.0) if t.is_valid_float() else 1.0
+	for w in _words():
+		if w.is_valid_float():
+			return clampf(w.to_float(), 1.0, 4.0)
+	return 1.0
+
+
+static func demo() -> bool:
+	return "demo" in _words()
 
 
 ## Walks the navmesh to `goal`, sprinting when the stalker is on its heels.

@@ -549,7 +549,9 @@ func _escape() -> void:
 		Audio.play("escape", -2.0, 0.0)
 		Audio.music()
 		hud.show_end("KAÇTIN", body, Color(0.75, 0.9, 1.0))
-	if ResourceLoader.exists(ESCAPE_VIDEO) and not Autopilot.enabled():
+	if Autopilot.demo():
+		Engine.time_scale = 1.0
+	if ResourceLoader.exists(ESCAPE_VIDEO) and (not Autopilot.enabled() or Autopilot.demo()):
 		Audio.music(-30.0, 1.0)
 		hud.play_video(load(ESCAPE_VIDEO), show)
 	else:
@@ -559,7 +561,8 @@ func _escape() -> void:
 
 func _round_over(result: String) -> void:
 	print("ROUND %s time=%.1f keys=%d level=%.2f" % [result, elapsed, keys_taken, level()])
-	if Autopilot.enabled():
+	# A demo run stops on its escape so the film and result stay on screen.
+	if Autopilot.enabled() and not (Autopilot.demo() and result == "escaped"):
 		_auto_restart = 2.0
 
 
@@ -620,6 +623,7 @@ func _physics_process(delta: float) -> void:
 ## once it is close, otherwise explores the nearest unvisited cell.
 func _bot_goal() -> Vector3:
 	_bot_seen[pos_cell(player.global_position)] = true
+	var sight := 1000.0 if Autopilot.demo() else 7.0
 	if stalker.is_chasing():
 		# Run for the cell within four steps that is furthest from the
 		# stalker by maze distance.
@@ -641,9 +645,15 @@ func _bot_goal() -> Vector3:
 	if player.battery < 0.3:
 		groups.push_front(&"batterys")
 	for g in groups:
+		var best_pick := INF
+		var pick := Vector3.INF
 		for n: Node3D in get_tree().get_nodes_in_group(g):
-			if n.global_position.distance_to(player.global_position) < 7.0:
-				return n.global_position
+			var d := n.global_position.distance_to(player.global_position)
+			if d < sight and d < best_pick:
+				best_pick = d
+				pick = n.global_position
+		if pick != Vector3.INF:
+			return pick
 	var best := INF
 	var goal := exit_goal
 	for x in MAZE_W:
