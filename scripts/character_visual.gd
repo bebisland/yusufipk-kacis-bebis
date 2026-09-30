@@ -73,17 +73,21 @@ func _merge_extra_anims() -> void:
 		var path: String = extra_anims[clip]
 		if not ResourceLoader.exists(path):
 			continue
+		var key := StringName("x_" + clip)
+		# The library is shared by every instance of the GLB, so after the
+		# first round the clip is already there.
+		if lib.has_animation(key):
+			_clips[clip] = key
+			continue
 		var tmp: Node = (load(path) as PackedScene).instantiate()
 		var ap := _find_anim_player(tmp)
 		if ap and ap.get_animation_list().size() > 0:
-			var key := StringName("x_" + clip)
-			if not lib.has_animation(key):
-				var src := ap.get_animation(ap.get_animation_list()[0])
-				var src_skel := _find_skeleton(tmp)
-				var dst_skel := _find_skeleton(anim_player.get_parent())
-				if src_skel and dst_skel:
-					src = _retarget(src, src_skel, dst_skel)
-				lib.add_animation(key, src)
+			var src := ap.get_animation(ap.get_animation_list()[0])
+			var src_skel := _find_skeleton(tmp)
+			var dst_skel := _find_skeleton(anim_player.get_parent())
+			if src_skel and dst_skel:
+				src = _retarget(src, src_skel, dst_skel)
+			lib.add_animation(key, src)
 			_clips[clip] = key
 		tmp.free()
 
@@ -102,7 +106,9 @@ func _find_skeleton(n: Node) -> Skeleton3D:
 ## can disagree on bone rest orientation (one came back with the hips turned
 ## ~117 degrees). Rewrites rotation keys so every bone keeps the same world
 ## orientation relative to its rest: q_dst = C_parent^-1 * q_src * C_bone,
-## with C = global_rest_src^-1 * global_rest_dst.
+## with C = global_rest_src^-1 * global_rest_dst. Position keys live in the
+## parent's frame, so their offset from rest is turned by C_parent^-1 and
+## added to this rig's rest, keeping this rig's bone lengths.
 func _retarget(anim: Animation, src: Skeleton3D, dst: Skeleton3D) -> Animation:
 	var out := anim.duplicate(true) as Animation
 	var corr := {}
@@ -114,13 +120,21 @@ func _retarget(anim: Animation, src: Skeleton3D, dst: Skeleton3D) -> Animation:
 		var gd := dst.get_bone_global_rest(b).basis.orthonormalized().get_rotation_quaternion()
 		corr[b] = gs.inverse() * gd
 	for t in out.get_track_count():
-		if out.track_get_type(t) != Animation.TYPE_ROTATION_3D:
+		var kind := out.track_get_type(t)
+		if kind != Animation.TYPE_ROTATION_3D and kind != Animation.TYPE_POSITION_3D:
 			continue
 		var b := dst.find_bone(String(out.track_get_path(t).get_concatenated_subnames()))
 		if b < 0 or not corr.has(b):
 			continue
 		var p := dst.get_bone_parent(b)
 		var pre: Quaternion = (corr[p] as Quaternion).inverse() if corr.has(p) else Quaternion.IDENTITY
+		if kind == Animation.TYPE_POSITION_3D:
+			var src_rest := src.get_bone_rest(src.find_bone(dst.get_bone_name(b))).origin
+			var dst_rest := dst.get_bone_rest(b).origin
+			for k in out.track_get_key_count(t):
+				var v: Vector3 = out.track_get_key_value(t, k)
+				out.track_set_key_value(t, k, dst_rest + pre * (v - src_rest))
+			continue
 		var post: Quaternion = corr[b]
 		for k in out.track_get_key_count(t):
 			var q: Quaternion = out.track_get_key_value(t, k)

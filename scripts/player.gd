@@ -13,8 +13,8 @@ const MOUSE_SENS := 0.0022
 const STRIDE_WALK := 2.1
 const STRIDE_RUN := 2.7
 ## Full sprint lasts this long; stamina comes back after a short pause.
-const SPRINT_TIME := 5.0
-const RECOVER_TIME := 7.0
+const SPRINT_TIME := 6.0
+const RECOVER_TIME := 6.0
 const RECOVER_DELAY := 0.8
 ## Seconds of light in a full battery.
 const BATTERY_LIFE := 170.0

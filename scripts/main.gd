@@ -253,7 +253,7 @@ func _build_exit(body: StaticBody3D, mat: Material) -> void:
 	var edge := cell_pos(_exit_cell) + out * CELL * 0.5
 	var stub := (CELL - DOOR_GAP) * 0.5
 	for s in [-1.0, 1.0]:
-		var p: Vector3 = edge + side * s * (DOOR_GAP * 0.5 + stub * 0.5)
+		var p: Vector3 = edge + side * s * (DOOR_GAP * 0.5 + (stub + WALL_T) * 0.5)
 		_add_box(body, p + Vector3(0, WALL_H * 0.5, 0), _oriented(Vector3(stub + WALL_T, WALL_H, WALL_T), side), mat)
 	# Outside corridor: two side walls and an end wall, one cell deep.
 	var mid := edge + out * CELL * 0.5
@@ -422,7 +422,7 @@ func _spawn_stalker() -> void:
 		far = maxi(far, dist[c])
 	var options: Array[Vector2i] = []
 	for c: Vector2i in dist:
-		if dist[c] >= int(far * 0.6) and c != _exit_cell:
+		if dist[c] >= int(far * 0.75) and c != _exit_cell:
 			options.append(c)
 	stalker = (load("res://scenes/stalker.tscn") as PackedScene).instantiate()
 	var vis := stalker.get_node("Visual") as CharacterVisual
@@ -522,7 +522,9 @@ func _on_caught() -> void:
 	var face := stalker.global_position + Vector3.UP * 2.0
 	var t := create_tween().set_parallel()
 	var look := player.global_transform.looking_at(Vector3(face.x, player.global_position.y, face.z))
-	t.tween_property(player, "rotation:y", look.basis.get_euler().y, 0.25)
+	# Turn the short way round.
+	var yaw := player.rotation.y + wrapf(look.basis.get_euler().y - player.rotation.y, -PI, PI)
+	t.tween_property(player, "rotation:y", yaw, 0.25)
 	t.tween_property(player.head, "rotation:x", 0.25, 0.25)
 	hud.set_danger(1.0)
 	hud.show_end("YAKALANDIN", "Hayatta kaldığın süre %s   Anahtar %d/%d" % [Hud.fmt_time(elapsed), keys_taken, KEY_COUNT], Color(0.9, 0.2, 0.18))
@@ -535,7 +537,8 @@ func _escape() -> void:
 	phase = Phase.ESCAPED
 	player.can_move = false
 	stalker.active = false
-	var record := best_time < 0.0 or elapsed < best_time
+	# Bot runs must not touch the real record.
+	var record := (best_time < 0.0 or elapsed < best_time) and not Autopilot.enabled()
 	if record:
 		best_time = elapsed
 		_save_best()
@@ -598,7 +601,7 @@ func _process(delta: float) -> void:
 		elapsed += delta
 	hud.set_stats(keys_taken, KEY_COUNT, elapsed, best_time, player.battery, player.stamina)
 	hud.set_mouse_hint(Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and phase == Phase.PLAY and not Autopilot.enabled())
-	_flicker_lamps()
+	_flicker_lamps(delta)
 	if phase == Phase.PLAY:
 		_heartbeat(delta)
 	if _auto_restart > 0.0:
@@ -618,18 +621,19 @@ func _physics_process(delta: float) -> void:
 func _bot_goal() -> Vector3:
 	_bot_seen[pos_cell(player.global_position)] = true
 	if stalker.is_chasing():
-		# Run for whichever nearby cell is furthest from the stalker.
-		var pc := pos_cell(player.global_position)
-		var far := -1.0
+		# Run for the cell within four steps that is furthest from the
+		# stalker by maze distance.
+		var mine := maze.distances(pos_cell(player.global_position))
+		var theirs := maze.distances(pos_cell(stalker.global_position))
+		var best_score := -INF
 		var flee := player.global_position
-		for dx in range(-3, 4):
-			for dy in range(-3, 4):
-				var c := pc + Vector2i(dx, dy)
-				if maze.in_bounds(c):
-					var d := cell_pos(c).distance_to(stalker.global_position)
-					if d > far:
-						far = d
-						flee = cell_pos(c)
+		for c: Vector2i in mine:
+			if mine[c] > 4:
+				continue
+			var score: float = theirs.get(c, 0) - 0.5 * mine[c]
+			if score > best_score:
+				best_score = score
+				flee = cell_pos(c)
 		return flee
 	if keys_taken >= KEY_COUNT:
 		return exit_goal
@@ -672,10 +676,10 @@ func _heartbeat(delta: float) -> void:
 		hud.pulse()
 
 
-func _flicker_lamps() -> void:
+func _flicker_lamps(delta: float) -> void:
 	for l in _lamps:
 		var base: float = l.get_meta("base")
-		if randf() < 0.02:
+		if randf() < 1.2 * delta:
 			l.light_energy = base * randf_range(0.1, 0.6)
 		else:
-			l.light_energy = lerpf(l.light_energy, base, 0.2)
+			l.light_energy = lerpf(l.light_energy, base, 1.0 - exp(-12.0 * delta))

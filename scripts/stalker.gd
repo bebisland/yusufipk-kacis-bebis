@@ -1,9 +1,13 @@
 class_name Stalker
 extends CharacterBody3D
 ## The thing in the maze. Wanders on the navmesh, walks to where it saw the
-## flashlight or heard running, chases on sight and ends the round on touch.
+## flashlight land or heard running, chases on sight and ends the round on touch.
 ## Every sense and speed scales with Main.level(), which rises with time and
 ## with each key the player takes.
+##
+## Tuned with the autopilot, which keeps its light on and never hides; it
+## lasts 0.5 to 2.5 minutes. A human who uses corners and the light switch
+## should last longer, so retune after real playtests.
 
 signal caught
 signal state_changed(chasing: bool)
@@ -59,7 +63,7 @@ func wander_speed() -> float:
 
 
 func chase_speed() -> float:
-	return minf(3.6 + 0.45 * level(), 6.2)
+	return minf(3.4 + 0.45 * level(), 6.2)
 
 
 func _target_speed() -> float:
@@ -111,7 +115,7 @@ func _perceive() -> void:
 		# inside the wall it is painted on.
 		var probe := lp + (player.eye_position() - lp).normalized() * 0.3
 		if global_position.distance_to(lp) < 14.0 + 2.5 * L and _in_fov(probe) and _can_see_point(probe):
-			_investigate(player.global_position)
+			_investigate(probe)
 
 
 func _tick_state(delta: float) -> void:
@@ -126,7 +130,10 @@ func _tick_state(delta: float) -> void:
 			# For a moment after losing sight it still knows where the player
 			# went, so one corner is not enough to shake it.
 			if _lost_t < 0.8 + 0.25 * level():
-				agent.target_position = player.global_position
+				# Re-path only when the player has moved; a path query per
+				# frame is wasted work.
+				if agent.target_position.distance_to(player.global_position) > 0.5:
+					agent.target_position = player.global_position
 			else:
 				_investigate(_last_seen)
 		State.SEARCH:
@@ -145,8 +152,9 @@ func _tick_state(delta: float) -> void:
 
 
 func _pick_wander_target() -> Vector3:
-	# Drifts toward the player more and more as the round goes on.
-	var hunt := clampf(0.1 + 0.13 * level(), 0.0, 0.85)
+	# Drifts toward the player more and more as the round goes on, but not
+	# in the first half minute, so a round does not open with an ambush.
+	var hunt := clampf(0.1 + 0.13 * level(), 0.0, 0.85) if main.elapsed > 30.0 else 0.0
 	if randf() < hunt:
 		return main.random_point_near(player.global_position, 3)
 	return main.random_point_near(global_position, 6)

@@ -153,7 +153,9 @@ func _bar(parent: Control, color: Color, y: float) -> ColorRect:
 static func fmt_time(t: float) -> String:
 	if t < 0.0:
 		return "--:--"
-	return "%02d:%04.1f" % [int(t) / 60, fmod(t, 60.0)]
+	# Round to tenths first so 59.97 carries into the minutes.
+	var d := roundi(t * 10.0)
+	return "%02d:%02d.%d" % [d / 600, (d / 10) % 60, d % 10]
 
 
 func set_stats(keys: int, total: int, elapsed: float, best: float, battery: float, stamina: float) -> void:
