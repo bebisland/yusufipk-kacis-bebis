@@ -3,3 +3,7 @@
 .mcp.json
 .vscode/
 .cursor/
+build/
+# Local editor tooling (Beckett MCP plugin), not part of the game
+addons/beckett/
+editor.sh

@@ -16,20 +16,10 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
 
-BeckettRuntime="*uid://do68dqybesb7r"
 Audio="*res://scripts/audio.gd"
-
-[beckett]
-
-effort_schema=2
-dock_revealed=true
 
 [display]
 
 window/size/viewport_width=1600
 window/size/viewport_height=900
 window/stretch/mode="canvas_items"
-
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/beckett/plugin.cfg")
