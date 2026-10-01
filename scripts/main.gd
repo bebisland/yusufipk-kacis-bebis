@@ -434,7 +434,7 @@ func _spawn_stalker() -> void:
 	stalker.player = player
 	stalker.position = cell_pos(options[_rng.randi() % options.size()])
 	add_child(stalker)
-	if FileAccess.file_exists("user://stalkercam"):
+	if OS.is_debug_build() and FileAccess.file_exists("user://stalkercam"):
 		# Dev only: watch the stalker from over its shoulder.
 		var cam := Camera3D.new()
 		cam.position = Vector3(0.6, 2.6, -2.6)
