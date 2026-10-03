@@ -4,7 +4,7 @@
 
 Birinci şahıs labirentten kaçış oyunu. Her turda yeniden oluşan karanlık bir labirentte üç anahtarı bul ve çıkış kapısına ulaş. Bu sırada bir takipçi seni görerek ve duyarak avlıyor.
 
-Bu oyunu bir YouTube videosu için yaptık. Kodu Godot 4.7'de Claude Code (Opus 5.5) yazdı; bütün modeller, dokular, müzik ve ara sahne videoları [Higgsfield](https://higgsfield.ai/s/claude-opus-5-5-yt-yusufipk-kKcOju) ile üretildi. Videonun linki yayınlanınca buraya eklenecek.
+Bu oyunu [bir YouTube videosu](https://www.youtube.com/watch?v=ooOnOUPlCF0) için yaptık. Kodu Godot 4.7'de Claude Code (Opus 5.5) yazdı; bütün modeller, dokular, müzik ve ara sahne videoları [Higgsfield](https://higgsfield.ai/s/claude-opus-5-5-yt-yusufipk-kKcOju) ile üretildi.
 
 ## Oyna
 
