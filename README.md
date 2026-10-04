@@ -1,17 +1,15 @@
-# Kaçış
+# Kaçış Bebiş
 
-![Kaçış](docs/gameplay.webp)
+![Kaçış](docs/gameplay-bebis.webp)
 
-Birinci şahıs labirentten kaçış oyunu. Her turda yeniden oluşan karanlık bir labirentte üç anahtarı bul ve çıkış kapısına ulaş. Bu sırada bir takipçi seni görerek ve duyarak avlıyor.
-
-Bu oyunu [bir YouTube videosu](https://www.youtube.com/watch?v=ooOnOUPlCF0) için yaptık. Kodu Godot 4.7'de Claude Code (Opus 5.5) yazdı; bütün modeller, dokular, müzik ve ara sahne videoları [Higgsfield](https://higgsfield.ai/s/claude-opus-5-5-yt-yusufipk-kKcOju) ile üretildi.
+Birinci şahıs labirentten kaçış oyunu. Her turda yeniden oluşan karanlık bir labirentte üç kurabiyeyi bul ve çıkış kapısına ulaş. Bu sırada bir takipçi seni görerek ve duyarak avlıyor.
 
 ## Oyna
 
-[Releases](https://github.com/yusufipk/kacis/releases/latest) sayfasından sistemine uygun dosyayı indir ve çalıştır, kurulum gerekmiyor.
+[Releases](https://github.com/bebisland/yusufipk-kacis-bebis/releases/latest) sayfasından sistemine uygun dosyayı indir ve çalıştır, kurulum gerekmiyor.
 
-- **Windows:** `Kacis.exe`. Dosya imzalı olmadığı için SmartScreen uyarı verebilir: "Ek bilgi"ye, sonra "Yine de çalıştır"a tıkla.
-- **Linux:** `chmod +x Kacis.x86_64 && ./Kacis.x86_64`
+- **Windows:** `KacisBebis.exe`. Dosya imzalı olmadığı için SmartScreen uyarı verebilir: "Ek bilgi"ye, sonra "Yine de çalıştır"a tıkla.
+- **Linux:** `chmod +x KacisBebis.x86_64 && ./KacisBebis.x86_64`
 
 Vulkan destekleyen bir ekran kartı gerekiyor (Windows'ta Direct3D 12 de yeterli).
 
