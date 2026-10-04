@@ -1,31 +1,30 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://clj004axc5sx8"]
 
-[ext_resource type="Script" path="res://scripts/player.gd" id="1_pl"]
+[ext_resource type="Script" uid="uid://cxsl07igibig2" path="res://scripts/player.gd" id="1_pl"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_pl"]
 radius = 0.35
 height = 1.75
 
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D" unique_id=241190281]
 collision_layer = 2
-collision_mask = 1
 floor_snap_length = 0.3
 script = ExtResource("1_pl")
 
-[node name="Shape" type="CollisionShape3D" parent="."]
+[node name="Shape" type="CollisionShape3D" parent="." unique_id=795912484]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
 shape = SubResource("Capsule_pl")
 
-[node name="Head" type="Node3D" parent="."]
+[node name="Head" type="Node3D" parent="." unique_id=1953645721]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
-[node name="Camera" type="Camera3D" parent="Head"]
+[node name="Camera" type="Camera3D" parent="Head" unique_id=1095981290]
 current = true
 fov = 72.0
 near = 0.03
 far = 80.0
 
-[node name="Flashlight" type="SpotLight3D" parent="Head/Camera"]
+[node name="Flashlight" type="SpotLight3D" parent="Head/Camera" unique_id=454801400]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, -0.17, -0.45)
 light_color = Color(1, 0.93, 0.8, 1)
 light_energy = 4.0
@@ -37,8 +36,8 @@ spot_attenuation = 0.9
 spot_angle = 31.0
 spot_angle_attenuation = 1.5
 
-[node name="Beam" type="RayCast3D" parent="Head/Camera"]
+[node name="Beam" type="RayCast3D" parent="Head/Camera" unique_id=1321950469]
 target_position = Vector3(0, 0, -16)
 
-[node name="Hand" type="Node3D" parent="Head/Camera"]
+[node name="Hand" type="Node3D" parent="Head/Camera" unique_id=721405098]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.19, -0.19, -0.3)

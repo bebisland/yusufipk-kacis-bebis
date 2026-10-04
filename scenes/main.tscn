@@ -1,6 +1,37 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://r80x8fqvglxv"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_mn"]
+[ext_resource type="Script" uid="uid://co0b23ce8k62r" path="res://scripts/main.gd" id="1_mn"]
+[ext_resource type="Shader" uid="uid://dihktpmiuivd4" path="res://scenes/main.gdshader" id="2_0wfyh"]
 
-[node name="Main" type="Node3D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5o2u3"]
+shader = ExtResource("2_0wfyh")
+shader_parameter/sky_color = Color(0.02016628, 0.14984751, 0.31763443, 1)
+shader_parameter/horizon_color = Color(6.256998e-07, 0.17588824, 0.27158943, 1)
+shader_parameter/horizon_blur = 0.1
+shader_parameter/sun_color = Color(1, 1, 0.8, 1)
+shader_parameter/sun_size = 0.05
+shader_parameter/sun_blur = 0.01
+shader_parameter/cloud_color = Color(0.09918148, 0.19871032, 0.3577288, 1)
+shader_parameter/cloud_edge_sharpness = 0.1
+shader_parameter/cloud_scale = 2.0
+shader_parameter/cloud_speed = 0.02
+
+[sub_resource type="Sky" id="Sky_sugp2"]
+sky_material = SubResource("ShaderMaterial_5o2u3")
+
+[sub_resource type="Environment" id="Environment_jyhfs"]
+background_mode = 2
+sky = SubResource("Sky_sugp2")
+ambient_light_sky_contribution = 0.25
+ambient_light_energy = 0.0
+tonemap_mode = 2
+tonemap_exposure = 0.5
+glow_enabled = true
+volumetric_fog_sky_affect = 0.0
+volumetric_fog_temporal_reprojection_enabled = false
+
+[node name="Main" type="Node3D" unique_id=1307587700]
 script = ExtResource("1_mn")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1936381731]
+environment = SubResource("Environment_jyhfs")

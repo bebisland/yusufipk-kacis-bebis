@@ -59,11 +59,11 @@ func level() -> float:
 
 
 func wander_speed() -> float:
-	return 1.5 + 0.15 * level()
+	return 1.5 + 0.15 * level() + 3
 
 
 func chase_speed() -> float:
-	return minf(3.4 + 0.45 * level(), 6.2)
+	return minf(3.4 + 0.45 * level(), 6.2) + 3
 
 
 func _target_speed() -> float:

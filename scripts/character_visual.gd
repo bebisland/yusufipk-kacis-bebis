@@ -150,11 +150,10 @@ func set_motion(speed: float, walk_speed := 1.6, run_speed := 4.5) -> void:
 		if _clips.has("idle"):
 			_play(_clips["idle"], 1.0)
 		else:
-			_play(_clips["walk"], 0.0)
-	elif speed > (walk_speed + run_speed) * 0.5 and _clips.has("run"):
-		_play(_clips["run"], clampf(speed / run_speed, 0.6, 1.6))
+			_play(_clips["run"], 0.0)
+		_play(_clips["run"], 1)
 	else:
-		_play(_clips["walk"], clampf(speed / walk_speed, 0.5, 2.2))
+		_play(_clips["run"], 1)
 
 
 func _play(anim: StringName, speed: float) -> void:

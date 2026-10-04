@@ -8,7 +8,7 @@ const MUSIC_PATH := "res://assets/audio/music.ogg"
 const VOICES := 16
 ## Same sound retriggered faster than this is dropped.
 const MIN_GAP := 0.045
-const MUSIC_DB := -12.0
+const MUSIC_DB := -24.0
 
 var _streams := {}
 var _players: Array[AudioStreamPlayer] = []
@@ -51,7 +51,7 @@ func play(name: String, volume_db := 0.0, pitch_jitter := 0.06) -> void:
 		return
 	var p := _free_voice()
 	p.stream = s
-	p.volume_db = volume_db
+	p.volume_db = -24
 	p.pitch_scale = 1.0 + randf_range(-pitch_jitter, pitch_jitter)
 	p.play()
 

@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://c2v6md4a8matd"]
 
-[ext_resource type="Script" path="res://scripts/intro_video.gd" id="1_iv"]
+[ext_resource type="Script" uid="uid://cy6dtgej7kd33" path="res://scripts/intro_video.gd" id="1_iv"]
 
-[node name="IntroVideo" type="Control"]
+[node name="IntroVideo" type="Control" unique_id=660633506]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_iv")
 
-[node name="Black" type="ColorRect" parent="."]
+[node name="Black" type="ColorRect" parent="." unique_id=1404276879]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Video" type="VideoStreamPlayer" parent="."]
+[node name="Video" type="VideoStreamPlayer" parent="." unique_id=101248634]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 expand = true
 
-[node name="SkipHint" type="Label" parent="."]
+[node name="SkipHint" type="Label" parent="." unique_id=904380201]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0

@@ -18,9 +18,6 @@ func _ready() -> void:
 	if Autopilot.enabled() or not ResourceLoader.exists(VIDEO_PATH):
 		_go.call_deferred()
 		return
-	player.stream = load(VIDEO_PATH)
-	player.finished.connect(_go)
-	player.play()
 
 
 func _process(delta: float) -> void:

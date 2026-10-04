@@ -84,7 +84,7 @@ func _ready() -> void:
 
 	_hint = _label(root, 20, Vector2.ZERO, HORIZONTAL_ALIGNMENT_CENTER)
 	_anchor(_hint, 0.5, 1, -500, -70, 1000, 30)
-	_hint.text = "WASD yürü   Shift koş   F fener   Üç anahtarı bul, kapıdan çık"
+	_hint.text = "WASD yürü   Shift koş   F fener   Üç kurabiyeyi bul, kapıdan çık"
 	_hint.modulate.a = 0.8
 
 	_mouse_hint = _label(root, 22, Vector2.ZERO, HORIZONTAL_ALIGNMENT_CENTER)
@@ -159,7 +159,7 @@ static func fmt_time(t: float) -> String:
 
 
 func set_stats(keys: int, total: int, elapsed: float, best: float, battery: float, stamina: float) -> void:
-	_keys.text = "Anahtar %d/%d" % [keys, total]
+	_keys.text = "Kurabiye %d/%d" % [keys, total]
 	_time.text = fmt_time(elapsed)
 	_best.text = "En kısa kaçış " + fmt_time(best)
 	_battery.size.x = 220.0 * battery

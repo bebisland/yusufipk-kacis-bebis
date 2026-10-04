@@ -7,7 +7,7 @@ signal taken(pickup: Pickup)
 
 var kind := "key"
 var model_path := ""
-var glow_color := Color(1.0, 0.75, 0.35)
+var glow_color := Color(1.0, 0.676, 0.28, 1.0)
 var size := 0.35
 
 var _t := 0.0
@@ -30,7 +30,6 @@ func _ready() -> void:
 		var meshes: Array[MeshInstance3D] = []
 		ModelUtil.collect_meshes(model, meshes)
 		ModelUtil.fix_meshy_materials(meshes)
-		ModelUtil.fit_height(model, size)
 		model.position.y -= size * 0.5
 	else:
 		model = MeshInstance3D.new()

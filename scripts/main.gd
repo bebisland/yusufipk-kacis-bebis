@@ -11,7 +11,7 @@ const MAZE_W := 10
 const MAZE_H := 10
 const KEY_COUNT := 3
 const BATTERY_COUNT := 3
-const LAMP_COUNT := 7
+const LAMP_COUNT := 0
 ## The stalker waits this long before it starts moving.
 const GRACE := 4.0
 const DOOR_GAP := 2.0
@@ -156,6 +156,7 @@ func _build_floor_and_ceiling() -> void:
 	floor_body.position = centre + Vector3(0, -0.1, 0)
 	_add_box(floor_body, Vector3.ZERO, size, _material(TEX_FLOOR, Color(0.25, 0.24, 0.23), 3.0))
 	nav.add_child(floor_body)
+	return
 	var ceil_mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = size
@@ -498,7 +499,7 @@ func _on_pickup(p: Pickup) -> void:
 	keys_taken += 1
 	Audio.play("key", -2.0)
 	if keys_taken < KEY_COUNT:
-		hud.message("Anahtar %d/%d" % [keys_taken, KEY_COUNT])
+		hud.message("Kurabiye %d/%d" % [keys_taken, KEY_COUNT])
 	else:
 		hud.message("Çıkış kapısı açıldı", 4.0)
 		_open_door()
@@ -527,7 +528,7 @@ func _on_caught() -> void:
 	t.tween_property(player, "rotation:y", yaw, 0.25)
 	t.tween_property(player.head, "rotation:x", 0.25, 0.25)
 	hud.set_danger(1.0)
-	hud.show_end("YAKALANDIN", "Hayatta kaldığın süre %s   Anahtar %d/%d" % [Hud.fmt_time(elapsed), keys_taken, KEY_COUNT], Color(0.9, 0.2, 0.18))
+	hud.show_end("YAKALANDIN", "Hayatta kaldığın süre %s   Kurabiye %d/%d" % [Hud.fmt_time(elapsed), keys_taken, KEY_COUNT], Color(0.9, 0.2, 0.18))
 	_round_over("caught")
 
 

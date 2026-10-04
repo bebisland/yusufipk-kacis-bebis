@@ -6,10 +6,10 @@ extends CharacterBody3D
 
 signal noise(pos: Vector3, radius: float)
 
-const WALK_SPEED := 3.0
-const SPRINT_SPEED := 5.6
-const ACCEL := 11.0
-const MOUSE_SENS := 0.0022
+const WALK_SPEED := 4.5
+const SPRINT_SPEED := 7.5
+const ACCEL := 50.0
+const MOUSE_SENS := 0.0025
 const STRIDE_WALK := 2.1
 const STRIDE_RUN := 2.7
 ## Full sprint lasts this long; stamina comes back after a short pause.
